@@ -10,10 +10,12 @@
 		089CA2C9F80C549CDFF5EBFA /* Pods_DHDataSources_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0C5C9FEC4060BCD49755419 /* Pods_DHDataSources_Example.framework */; };
 		43A833C6A547A85DDB835513 /* Pods_DHDataSources_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A3D6C8D8001FBD9A052A599F /* Pods_DHDataSources_Tests.framework */; };
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
-		607FACD81AFB9204008FA782 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD71AFB9204008FA782 /* ViewController.swift */; };
+		607FACD81AFB9204008FA782 /* CombinedDataSourceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD71AFB9204008FA782 /* CombinedDataSourceViewController.swift */; };
 		607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607FACD91AFB9204008FA782 /* Main.storyboard */; };
 		607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDC1AFB9204008FA782 /* Images.xcassets */; };
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
+		B46E993921860FEE00B6EFFC /* PHFetchResultViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46E993821860FED00B6EFFC /* PHFetchResultViewController.swift */; };
+		B46E993B2186107E00B6EFFC /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46E993A2186107E00B6EFFC /* Models.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,7 +35,7 @@
 		607FACD01AFB9204008FA782 /* DHDataSources_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DHDataSources_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACD51AFB9204008FA782 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		607FACD71AFB9204008FA782 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		607FACD71AFB9204008FA782 /* CombinedDataSourceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombinedDataSourceViewController.swift; sourceTree = "<group>"; };
 		607FACDA1AFB9204008FA782 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		607FACDC1AFB9204008FA782 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		607FACDF1AFB9204008FA782 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -43,6 +45,8 @@
 		A0C5C9FEC4060BCD49755419 /* Pods_DHDataSources_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DHDataSources_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3D6C8D8001FBD9A052A599F /* Pods_DHDataSources_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DHDataSources_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AADD4CA248E70FE2C683BA79 /* Pods-DHDataSources_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DHDataSources_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-DHDataSources_Tests/Pods-DHDataSources_Tests.debug.xcconfig"; sourceTree = "<group>"; };
+		B46E993821860FED00B6EFFC /* PHFetchResultViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PHFetchResultViewController.swift; sourceTree = "<group>"; };
+		B46E993A2186107E00B6EFFC /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		C74147D90B50CA9CA89AEFFC /* Pods-DHDataSources_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DHDataSources_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-DHDataSources_Example/Pods-DHDataSources_Example.release.xcconfig"; sourceTree = "<group>"; };
 		FEFCBF56BB9D8205112E20B3 /* DHDataSources.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = DHDataSources.podspec; path = ../DHDataSources.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
@@ -112,11 +116,13 @@
 			isa = PBXGroup;
 			children = (
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
-				607FACD71AFB9204008FA782 /* ViewController.swift */,
+				607FACD71AFB9204008FA782 /* CombinedDataSourceViewController.swift */,
+				B46E993821860FED00B6EFFC /* PHFetchResultViewController.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
 				607FACD31AFB9204008FA782 /* Supporting Files */,
+				B46E993A2186107E00B6EFFC /* Models.swift */,
 			);
 			name = "Example for DHDataSources";
 			path = DHDataSources;
@@ -321,8 +327,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
+				B46E993921860FEE00B6EFFC /* PHFetchResultViewController.swift in Sources */,
+				607FACD81AFB9204008FA782 /* CombinedDataSourceViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
+				B46E993B2186107E00B6EFFC /* Models.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

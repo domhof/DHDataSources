@@ -1,7 +1,7 @@
 import Foundation
 import Photos
 
-public class PHFetchResultDataSource<ModelType: PHObject>: NSObject, DataSource {
+public class PHFetchResultDataSource<ModelType: PHObject>: DataSource {
     
     public var fetchResult: PHFetchResult<ModelType>
     private lazy var photoLibraryChangeObserver = PhotoLibraryChangeObserver<ModelType>(dataSource: self)
@@ -32,8 +32,7 @@ public class PHFetchResultDataSource<ModelType: PHObject>: NSObject, DataSource 
         }
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
-        
+    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
         #warning("ignoreChangeTypes gets ignored for the time being...")
         
         photoLibraryChangeObserver.subscribe(observer: observer, indexPathOffset: indexPathOffset)
