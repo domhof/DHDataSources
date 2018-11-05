@@ -1,12 +1,10 @@
 import Foundation
 
-public class CollectionViewUpdater<DataSourceType: DataSource>: DataSourceChangeObserver {
+public class CollectionViewUpdater: DataSourceChangeObserver {
     
-    private let dataSource: DataSourceType
     private let collectionView: UICollectionView
     
-    init(dataSource: DataSourceType, collectionView: UICollectionView) {
-        self.dataSource = dataSource
+    public init(collectionView: UICollectionView) {
         self.collectionView = collectionView
     }
     
@@ -14,7 +12,6 @@ public class CollectionViewUpdater<DataSourceType: DataSource>: DataSourceChange
         collectionView.performBatchUpdates({
             // Apply object changes.
             for (changeType, indexPaths) in objectChanges {
-                
                 switch(changeType) {
                 case .insert:
                     self.collectionView.insertItems(at: indexPaths)

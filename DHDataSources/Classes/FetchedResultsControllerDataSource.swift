@@ -4,6 +4,7 @@ import CoreData
 open class FetchedResultsControllerDataSource<ModelType: NSFetchRequestResult>: DataSource {
     
     public let fetchedResultsController: NSFetchedResultsController<ModelType>
+    private lazy var fetchedResultsChangeObserver = FetchedResultsControllerChangeObserver<ModelType>(fetchedResultsController: self.fetchedResultsController)
     
     public init(fetchedResultsController: NSFetchedResultsController<ModelType>) {
         self.fetchedResultsController = fetchedResultsController
@@ -36,76 +37,66 @@ open class FetchedResultsControllerDataSource<ModelType: NSFetchRequestResult>: 
     
     private var subscribers = [DataSourceChangeObserver]()
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath) {
-        fatalError("Not implemented")
+    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
+        fetchedResultsChangeObserver.subscribe(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset)
     }
     
     public func unsubscribe(observer: DataSourceChangeObserver) {
-        fatalError("Not implemented")
+        fetchedResultsChangeObserver.unsubscribe(observer: observer)
     }
 }
 
-public class FetchedResultsControllerChangeObserver<ModelType: NSFetchRequestResult>: NSObject, NSFetchedResultsControllerDelegate {
+fileprivate class FetchedResultsControllerChangeObserver<ModelType: NSFetchRequestResult>: NSObject, NSFetchedResultsControllerDelegate {
     
-    private unowned let dataSource: FetchedResultsControllerDataSource<ModelType>
+    private let fetchedResultsController: NSFetchedResultsController<ModelType>
+    private let observerContainer = ObserverContainer()
     
-    private var changeObservers = [(dataSourceChangeObserver: DataSourceChangeObserver, indexPathOffset: IndexPath, ignoreChangeTypes: [ChangeType])]()
-    
-    public init(dataSource: FetchedResultsControllerDataSource<ModelType>) {
-        self.dataSource = dataSource
+    public init(fetchedResultsController: NSFetchedResultsController<ModelType>) {
+        self.fetchedResultsController = fetchedResultsController
     }
     
     deinit {
-        if dataSource.fetchedResultsController.delegate === self {
-            dataSource.fetchedResultsController.delegate = nil
+        if fetchedResultsController.delegate === self {
+            fetchedResultsController.delegate = nil
         }
     }
     
-    fileprivate func subscribe(observer: DataSourceChangeObserver, indexPathOffset: IndexPath = IndexPath(item: 0, section: 0), ignoreChangeTypes: [ChangeType]) {
-        #warning("Use lock to prevent concurrent access.")
-        
-        changeObservers.append((observer, indexPathOffset, ignoreChangeTypes))
-        
-        if (changeObservers.count == 1) {
-            activate()
+    fileprivate func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath) {
+        observerContainer.add(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset) {
+            self.activate()
         }
     }
     
     fileprivate func unsubscribe(observer: DataSourceChangeObserver) {
-        #warning("Use lock to prevent concurrent access.")
-        
-        if let i = changeObservers.firstIndex(where: { $0.dataSourceChangeObserver === observer }) {
-            changeObservers.remove(at: i)
-            
-            if changeObservers.isEmpty {
-                deactivate()
-            }
+        observerContainer.remove(observer: observer) {
+            self.deactivate()
         }
     }
     
     private func activate() {
-        if dataSource.fetchedResultsController.delegate === self {
+        if fetchedResultsController.delegate === self {
             return
         }
-        guard dataSource.fetchedResultsController.delegate == nil else {
+        guard fetchedResultsController.delegate == nil else {
             assertionFailure("Tried to activate FetchedResultsControllerChangeObserver while another observer is active.")
             return
         }
-        dataSource.fetchedResultsController.delegate = self
+        fetchedResultsController.delegate = self
     }
     
     private func deactivate() {
-        guard dataSource.fetchedResultsController.delegate === self else {
+        guard fetchedResultsController.delegate === self else {
             assertionFailure("Tried to deactivate FetchedResultsControllerChangeObserver although it was not active.")
             return
         }
-        dataSource.fetchedResultsController.delegate = nil
+        fetchedResultsController.delegate = nil
     }
     
     private var sectionChanges = [SectionChangeTuple]()
     private var objectChanges = [ObjectChangeTuple]()
     
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        // Do nothing...
     }
     
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
@@ -149,36 +140,8 @@ public class FetchedResultsControllerChangeObserver<ModelType: NSFetchRequestRes
     }
     
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        for (observer, indexPathOffset, ignoreChangeTypes) in changeObservers {
-            if !ignoreChangeTypes.isEmpty {
-                let filterdSectionChanges: [SectionChangeTuple]
-                let filterdObjectChanges: [ObjectChangeTuple]
-                if indexPathOffset == IndexPath(item: 0, section: 0) {
-                    filterdObjectChanges = objectChanges.filter { !ignoreChangeTypes.contains($0.changeType) }
-                    filterdSectionChanges = sectionChanges.filter { !ignoreChangeTypes.contains($0.changeType) }
-                } else {
-                    filterdObjectChanges = objectChanges.compactMap({ objectChangeTuple -> ObjectChangeTuple? in
-                        if ignoreChangeTypes.contains(objectChangeTuple.changeType) {
-                            return nil
-                        } else {
-                            let indexPaths = objectChangeTuple.indexPaths.map { IndexPath(item: $0.item + indexPathOffset.item, section: $0.section + indexPathOffset.section) }
-                            return (objectChangeTuple.changeType, indexPaths)
-                        }
-                    })
-                    filterdSectionChanges = sectionChanges.compactMap({ sectionChangeTuple -> SectionChangeTuple? in
-                        if ignoreChangeTypes.contains(sectionChangeTuple.changeType) {
-                            return nil
-                        } else {
-                            return (sectionChangeTuple.changeType, sectionChangeTuple.sectionIndex + indexPathOffset.section)
-                        }
-                    })
-                }
-                
-                observer.dataSourceDidChange(objectChanges: filterdObjectChanges, sectionChanges: filterdSectionChanges)
-            } else {
-                observer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
-            }
-        }
+        observerContainer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
+        
         sectionChanges.removeAll()
         objectChanges.removeAll()
     }

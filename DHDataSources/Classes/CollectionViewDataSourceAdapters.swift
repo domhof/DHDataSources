@@ -9,7 +9,7 @@ public protocol CollectionViewDataSourceAdapterProtocol: UICollectionViewDataSou
     func collectionView(_ collectionView: UICollectionView, cellForItemAtIndexPath indexPath: IndexPath, indexPathInCollectionView: IndexPath) -> UICollectionViewCell
 }
 
-public class CollectionViewDataSourceAdapter<DataSourceType: DataSource, ModelType>: NSObject, CollectionViewDataSourceAdapterProtocol where DataSourceType.ModelType == ModelType {
+open class CollectionViewDataSourceAdapter<DataSourceType: DataSource, ModelType>: NSObject, CollectionViewDataSourceAdapterProtocol where DataSourceType.ModelType == ModelType {
     
     public typealias CellProvider = (_ collectionView: UICollectionView, _ indexPath: IndexPath, _ model: ModelType) -> UICollectionViewCell
     
@@ -36,9 +36,7 @@ public class CollectionViewDataSourceAdapter<DataSourceType: DataSource, ModelTy
     }
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAtIndexPath indexPath: IndexPath, indexPathInCollectionView: IndexPath) -> UICollectionViewCell {
-        let model = dataSource[indexPath]
-        
-        return cellProvider(collectionView, indexPathInCollectionView, model)
+        return cellProvider(collectionView, indexPathInCollectionView, dataSource[indexPath])
     }
     
     public func dataSourceForCollectionView(_ collectionView: UICollectionView, atIndexPath indexPath: IndexPath) -> (dataSource: AnyObject, convertedIndexPath: IndexPath) {
@@ -46,7 +44,7 @@ public class CollectionViewDataSourceAdapter<DataSourceType: DataSource, ModelTy
     }
 }
 
-public class CombinedCollectionViewDataSourceAdapter: NSObject, CollectionViewDataSourceAdapterProtocol {
+open class CombinedCollectionViewDataSourceAdapter: NSObject, CollectionViewDataSourceAdapterProtocol {
     
     let collectionViewDataSourceAdapters: [CollectionViewDataSourceAdapterProtocol]
     
@@ -94,7 +92,7 @@ public class CombinedCollectionViewDataSourceAdapter: NSObject, CollectionViewDa
     }
 }
 
-public class FlattenedCollectionViewDataSourceAdapter: NSObject, CollectionViewDataSourceAdapterProtocol {
+open class FlattenedCollectionViewDataSourceAdapter: NSObject, CollectionViewDataSourceAdapterProtocol {
     
     let collectionViewDataSourceAdapters: [CollectionViewDataSourceAdapterProtocol]
     
@@ -145,7 +143,7 @@ public class FlattenedCollectionViewDataSourceAdapter: NSObject, CollectionViewD
                 }
             }
         }
-        fatalError("CombinedCollectionViewDataSourceAdapter inconsistency")
+        fatalError("FlattenedCollectionViewDataSourceAdapter inconsistency")
     }
     
     public func dataSourceForCollectionView(_ collectionView: UICollectionView, atIndexPath indexPath: IndexPath) -> (dataSource: AnyObject, convertedIndexPath: IndexPath) {

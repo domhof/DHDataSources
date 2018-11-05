@@ -49,6 +49,7 @@ public protocol PhotoLibraryChangeObserverDelegate: class {
     func photoLibraryChangeObserverDataDidChange()
 }
 
+#warning("TODO: Use ObserverContainer")
 fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHPhotoLibraryChangeObserver {
     
     public weak var delegate: (PhotoLibraryChangeObserverDelegate)?
@@ -88,8 +89,6 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     }
     
     private func reloadAllItems() {
-        #warning("Use lock to prevent concurrent access.")
-        
         // Photos may call this method on a background queue;
         // switch to the main queue to update the UI.
         DispatchQueue.main.async {
