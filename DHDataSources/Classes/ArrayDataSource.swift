@@ -81,7 +81,7 @@ public class ArrayDataSourceSorter<ModelType: Equatable> {
             let sortedArray = (originalArray as NSArray).sortedArray(comparator: { (item1, item2) -> ComparisonResult in
                 return comparator(item1 as! ModelType, item2 as! ModelType)
             }) as! [ModelType]
-            sections[sectionIndex] = sortedArray
+            sections.append(sortedArray)
             
             // Calculate ObjectChangeTuples.
             for (originalIndex, originalItem) in originalArray.enumerated() {
