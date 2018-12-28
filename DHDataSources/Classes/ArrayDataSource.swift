@@ -31,7 +31,7 @@ open class ArrayDataSource<ModelType>: NSObject, DataSource {
         }
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath) {
+    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
         observerContainer.add(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset)
     }
     
@@ -87,8 +87,8 @@ public class ArrayDataSourceSorter<ModelType: Equatable> {
             for (originalIndex, originalItem) in originalArray.enumerated() {
                 let sortedIndex = sortedArray.index(of: originalItem)!
                 if originalIndex != sortedIndex {
-                    let from = IndexPath(item: originalIndex, section: 0)
-                    let to = IndexPath(item: sortedIndex, section: 0)
+                    let from = IndexPath(item: originalIndex, section: sectionIndex)
+                    let to = IndexPath(item: sortedIndex, section: sectionIndex)
                     objectChanges.append(ObjectChangeTuple(changeType: .move, indexPaths:[from, to]))
                 }
             }
