@@ -16,12 +16,11 @@ class ObserverContainer {
     func remove(observer: DataSourceChangeObserver, lastRemoved: (() -> ())? = nil) {
         #warning("Use lock to prevent concurrent access.")
         
-        if let i = changeObservers.firstIndex(where: { $0.dataSourceChangeObserver === observer }) {
-            changeObservers.remove(at: i)
-            
-            if changeObservers.isEmpty {
-                lastRemoved?()
-            }
+        guard let i = changeObservers.firstIndex(where: { $0.dataSourceChangeObserver === observer }) else { return }
+        
+        changeObservers.remove(at: i)
+        if changeObservers.isEmpty {
+            lastRemoved?()
         }
     }
     
