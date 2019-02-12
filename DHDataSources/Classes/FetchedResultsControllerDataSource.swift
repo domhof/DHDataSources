@@ -108,21 +108,13 @@ fileprivate class FetchedResultsControllerChangeObserver<ModelType: NSFetchReque
         
         switch type {
         case .insert:
-            if let insertIndexPath = newIndexPath {
-                objectChanges.append((changeType, [insertIndexPath]))
-            }
+            objectChanges.append((changeType, [newIndexPath!]))
         case .delete:
-            if let deleteIndexPath = indexPath {
-                objectChanges.append((changeType, [deleteIndexPath]))
-            }
+            objectChanges.append((changeType, [indexPath!]))
         case .update:
-            if let indexPath = indexPath {
-                objectChanges.append((changeType, [indexPath]))
-            }
+            objectChanges.append((changeType, [newIndexPath!]))
         case .move:
-            if let old = indexPath, let new = newIndexPath {
-                objectChanges.append((changeType, [old, new]))
-            }
+            objectChanges.append((changeType, [indexPath!, newIndexPath!]))
         }
     }
     
