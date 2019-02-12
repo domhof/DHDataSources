@@ -29,8 +29,8 @@ public class DataSourceAdapter<DataSourceType: DataSource, Model>: DataSource {
         return mapping(dataSource[indexPath])
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
-        dataSource.subscribe(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset)
+    public func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType] = [], ignoreSectionChangeTypes: [SectionChange.ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
+        dataSource.subscribe(observer: observer, ignoreObjectChangeTypes: ignoreObjectChangeTypes, ignoreSectionChangeTypes: ignoreSectionChangeTypes, indexPathOffset: indexPathOffset)
     }
     
     public func unsubscribe(observer: DataSourceChangeObserver) {

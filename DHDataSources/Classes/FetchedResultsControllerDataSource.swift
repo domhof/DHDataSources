@@ -37,8 +37,8 @@ open class FetchedResultsControllerDataSource<ModelType: NSFetchRequestResult>: 
     
     private var subscribers = [DataSourceChangeObserver]()
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
-        fetchedResultsChangeObserver.subscribe(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset)
+    public func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType] = [], ignoreSectionChangeTypes: [SectionChange.ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
+        fetchedResultsChangeObserver.subscribe(observer: observer, ignoreObjectChangeTypes: ignoreObjectChangeTypes, ignoreSectionChangeTypes: ignoreSectionChangeTypes, indexPathOffset: indexPathOffset)
     }
     
     public func unsubscribe(observer: DataSourceChangeObserver) {
@@ -61,8 +61,8 @@ fileprivate class FetchedResultsControllerChangeObserver<ModelType: NSFetchReque
         }
     }
     
-    fileprivate func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath) {
-        observerContainer.add(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset) {
+    fileprivate func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType], ignoreSectionChangeTypes: [SectionChange.ChangeType], indexPathOffset: IndexPath) {
+        observerContainer.add(observer: observer, ignoreObjectChangeTypes: ignoreObjectChangeTypes, ignoreSectionChangeTypes: ignoreSectionChangeTypes, indexPathOffset: indexPathOffset) {
             self.activate()
         }
     }
@@ -92,46 +92,63 @@ fileprivate class FetchedResultsControllerChangeObserver<ModelType: NSFetchReque
         fetchedResultsController.delegate = nil
     }
     
-    private var sectionChanges = [SectionChangeTuple]()
-    private var objectChanges = [ObjectChangeTuple]()
+    private var sectionChanges = [SectionChange]()
+    private var objectChanges = [ObjectChange]()
     
     public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         // Do nothing...
     }
     
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
-        sectionChanges.append((translateChangeType(type), sectionIndex))
-    }
-    
-    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        let changeType = translateChangeType(type)
-        
         switch type {
         case .insert:
-            objectChanges.append((changeType, [newIndexPath!]))
+            sectionChanges.append(SectionChange.insert(at: sectionIndex))
         case .delete:
-            objectChanges.append((changeType, [indexPath!]))
-        case .update:
-            objectChanges.append((changeType, [newIndexPath!]))
-        case .move:
-            objectChanges.append((changeType, [indexPath!, newIndexPath!]))
+            sectionChanges.append(SectionChange.delete(at: sectionIndex))
+        default:
+            assertionFailure("Invalid section change type.")
         }
     }
     
-    private func translateChangeType(_ type: NSFetchedResultsChangeType) -> ChangeType {
+    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            return .insert
+            objectChanges.append(.insert(at: newIndexPath!))
         case .delete:
-            return .delete
+            objectChanges.append(.delete(at: indexPath!))
         case .update:
-            return .update
+            objectChanges.append(.update(at: newIndexPath!))
         case .move:
-            return .move
+            objectChanges.append(.move(at: indexPath!, to: newIndexPath!))
         }
     }
     
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+//        // http://www.openradar.me/27957917
+//        NSLog("before: \(objectChanges)")
+//        // Remove all .update for which there is another change concerning the same index.
+//        let nonUpdates = objectChanges.filter { (change) -> Bool in
+//            if case ObjectChange.update = change {
+//                return false
+//            } else {
+//                return true
+//            }
+//        }
+//        if !nonUpdates.isEmpty && nonUpdates.count != objectChanges.count {
+//            objectChanges.removeAll { change -> Bool in
+//                guard case ObjectChange.update(at: let indexPath) = change else { return false }
+//                return nonUpdates.contains(where: {
+//                    switch $0 {
+//                    case .delete(at: indexPath): return true
+//                    case .insert(at: indexPath): return true
+//                    case .move(at: indexPath, to: _): return true
+//                    case .move(at: _, to: indexPath): return true
+//                    default: return false
+//                    }
+//                })
+//            }
+//        }
+//        NSLog("after: \(objectChanges)")
         observerContainer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
         
         sectionChanges.removeAll()

@@ -31,8 +31,8 @@ open class ArrayDataSource<ModelType>: NSObject, DataSource {
         }
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
-        observerContainer.add(observer: observer, ignoreChangeTypes: ignoreChangeTypes, indexPathOffset: indexPathOffset)
+    public func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType] = [], ignoreSectionChangeTypes: [SectionChange.ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
+        observerContainer.add(observer: observer, ignoreObjectChangeTypes: ignoreObjectChangeTypes, ignoreSectionChangeTypes: ignoreSectionChangeTypes, indexPathOffset: indexPathOffset)
     }
     
     public func unsubscribe(observer: DataSourceChangeObserver) {
@@ -51,7 +51,7 @@ open class ArrayDataSource<ModelType>: NSObject, DataSource {
     }
     
     #warning("TODO: Do not require sections as an argument")
-    public func applyChanges(sections: [[ModelType]], objectChanges: [ObjectChangeTuple], sectionChanges: [SectionChangeTuple]) {
+    public func applyChanges(sections: [[ModelType]], objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
         self.sections = sections
         observerContainer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
     }
@@ -72,7 +72,7 @@ public class ArrayDataSourceSorter<ModelType: Equatable> {
         guard numberOfSections > 0 else { return }
         
         var sections = [[ModelType]]()
-        var objectChanges = [ObjectChangeTuple]()
+        var objectChanges = [ObjectChange]()
         
         for sectionIndex in 0..<numberOfSections {
             let originalArray = dataSource.section(at: sectionIndex)
@@ -89,7 +89,7 @@ public class ArrayDataSourceSorter<ModelType: Equatable> {
                 if originalIndex != sortedIndex {
                     let from = IndexPath(item: originalIndex, section: sectionIndex)
                     let to = IndexPath(item: sortedIndex, section: sectionIndex)
-                    objectChanges.append(ObjectChangeTuple(changeType: .move, indexPaths:[from, to]))
+                    objectChanges.append(.move(at: from, to: to))
                 }
             }
         }

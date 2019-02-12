@@ -39,7 +39,7 @@ public class CombinedDataSource<DataSource1Type: DataSource, DataSource2Type: Da
         }
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath) {
+    public func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType], ignoreSectionChangeTypes: [SectionChange.ChangeType], indexPathOffset: IndexPath) {
         fatalError("not implemented")
     }
     

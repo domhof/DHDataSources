@@ -8,40 +8,31 @@ public class TableViewUpdater: DataSourceChangeObserver {
         self.tableView = tableView
     }
     
-    public func dataSourceDidChange(objectChanges: [ObjectChangeTuple], sectionChanges: [SectionChangeTuple]) {
+    public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
         tableView.beginUpdates()
         
         // Apply object changes.
-        for (changeType, indexPaths) in objectChanges {
-            switch(changeType) {
-            case .insert:
-                tableView.insertRows(at: indexPaths, with: .automatic)
-            case .delete:
-                tableView.deleteRows(at: indexPaths, with: .automatic)
-            case .update:
-                tableView.reloadRows(at: indexPaths, with: .automatic)
-            case .move:
-                if let deleteIndexPath = indexPaths.first {
-                    tableView.deleteRows(at: [deleteIndexPath], with: .automatic)
-                }
-                
-                if let insertIndexPath = indexPaths.last {
-                    tableView.insertRows(at: [insertIndexPath], with: .automatic)
-                }
+        for change in objectChanges {
+            switch(change) {
+            case let .insert(at: indexPath):
+                tableView.insertRows(at: [indexPath], with: .automatic)
+            case let .delete(at: indexPath):
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+            case let .update(at: indexPath):
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            case let .move(at: at, to: to):
+                tableView.deleteRows(at: [at], with: .automatic)
+                tableView.insertRows(at: [to], with: .automatic)
             }
         }
         
         // Apply section changes.
-        for (changeType, sectionIndex) in sectionChanges {
-            let section = IndexSet(integer: sectionIndex)
-            
-            switch(changeType) {
-            case .insert:
-                tableView.insertSections(section, with: .automatic)
-            case .delete:
-                tableView.deleteSections(section, with: .automatic)
-            default:
-                break
+        for change in sectionChanges {
+            switch(change) {
+            case let .insert(at: sectionIndex):
+                tableView.insertSections(IndexSet(integer: sectionIndex), with: .automatic)
+            case let .delete(at: sectionIndex):
+                tableView.deleteSections(IndexSet(integer: sectionIndex), with: .automatic)
             }
         }
         

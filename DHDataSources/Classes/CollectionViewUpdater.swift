@@ -8,33 +8,29 @@ public class CollectionViewUpdater: DataSourceChangeObserver {
         self.collectionView = collectionView
     }
     
-    public func dataSourceDidChange(objectChanges: [ObjectChangeTuple], sectionChanges: [SectionChangeTuple]) {
+    public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
         collectionView.performBatchUpdates({
             // Apply object changes.
-            for (changeType, indexPaths) in objectChanges {
-                switch(changeType) {
-                case .insert:
-                    self.collectionView.insertItems(at: indexPaths)
-                case .delete:
-                    self.collectionView.deleteItems(at: indexPaths)
-                case .update:
-                    self.collectionView.reloadItems(at: indexPaths)
-                case .move:
-                    self.collectionView.moveItem(at: indexPaths.first!, to: indexPaths.last!)
+            for change in objectChanges {
+                switch(change) {
+                case let .insert(at: indexPath):
+                    self.collectionView.insertItems(at: [indexPath])
+                case let .delete(at: indexPath):
+                    self.collectionView.deleteItems(at: [indexPath])
+                case let .update(at: indexPath):
+                    self.collectionView.reloadItems(at: [indexPath])
+                case let .move(at: at, to: to):
+                    self.collectionView.moveItem(at: at, to: to)
                 }
             }
             
             // Apply section changes.
-            for (changeType, sectionIndex) in sectionChanges {
-                let section = IndexSet(integer: sectionIndex)
-                
-                switch(changeType) {
-                case .insert:
-                    self.collectionView.insertSections(section)
-                case .delete:
-                    self.collectionView.deleteSections(section)
-                default:
-                    break
+            for change in sectionChanges {
+                switch(change) {
+                case let .insert(at: sectionIndex):
+                    self.collectionView.insertSections(IndexSet(integer: sectionIndex))
+                case let .delete(at: sectionIndex):
+                    self.collectionView.deleteSections(IndexSet(integer: sectionIndex))
                 }
             }
         }) { _ in

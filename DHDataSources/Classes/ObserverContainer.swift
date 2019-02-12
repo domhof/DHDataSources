@@ -1,12 +1,21 @@
 import Foundation
 
 class ObserverContainer {
-    private var changeObservers = [(dataSourceChangeObserver: DataSourceChangeObserver, indexPathOffset: IndexPath, ignoreChangeTypes: [ChangeType])]()
+    struct ChangeObserver {
+        let dataSourceChangeObserver: DataSourceChangeObserver
+        let indexPathOffset: IndexPath
+        let ignoreObjectChangeTypes: [ObjectChange.ChangeType]
+        let ignoreSectionChangeTypes: [SectionChange.ChangeType]
+    }
+    private var changeObservers = [ChangeObserver]()
     
-    func add(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType], indexPathOffset: IndexPath, firstAdded: (() -> ())? = nil) {
+    func add(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType], ignoreSectionChangeTypes: [SectionChange.ChangeType], indexPathOffset: IndexPath, firstAdded: (() -> ())? = nil) {
         #warning("Use lock to prevent concurrent access.")
         
-        changeObservers.append((observer, indexPathOffset, ignoreChangeTypes))
+        changeObservers.append(ChangeObserver(dataSourceChangeObserver: observer,
+                                              indexPathOffset: indexPathOffset,
+                                              ignoreObjectChangeTypes: ignoreObjectChangeTypes,
+                                              ignoreSectionChangeTypes: ignoreSectionChangeTypes))
         
         if (changeObservers.count == 1) {
             firstAdded?()
@@ -24,37 +33,48 @@ class ObserverContainer {
         }
     }
     
-    func dataSourceDidChange(objectChanges: [ObjectChangeTuple], sectionChanges: [SectionChangeTuple]) {
-        for (observer, indexPathOffset, ignoreChangeTypes) in changeObservers {
-            if !ignoreChangeTypes.isEmpty {
-                let filterdSectionChanges: [SectionChangeTuple]
-                let filterdObjectChanges: [ObjectChangeTuple]
-                if indexPathOffset == IndexPath(item: 0, section: 0) {
-                    filterdObjectChanges = objectChanges.filter { !ignoreChangeTypes.contains($0.changeType) }
-                    filterdSectionChanges = sectionChanges.filter { !ignoreChangeTypes.contains($0.changeType) }
-                } else {
-                    filterdObjectChanges = objectChanges.compactMap({ objectChangeTuple -> ObjectChangeTuple? in
-                        if ignoreChangeTypes.contains(objectChangeTuple.changeType) {
-                            return nil
-                        } else {
-                            let indexPaths = objectChangeTuple.indexPaths.map { IndexPath(item: $0.item + indexPathOffset.item, section: $0.section + indexPathOffset.section) }
-                            return (objectChangeTuple.changeType, indexPaths)
-                        }
-                    })
-                    filterdSectionChanges = sectionChanges.compactMap({ sectionChangeTuple -> SectionChangeTuple? in
-                        if ignoreChangeTypes.contains(sectionChangeTuple.changeType) {
-                            return nil
-                        } else {
-                            return (sectionChangeTuple.changeType, sectionChangeTuple.sectionIndex + indexPathOffset.section)
-                        }
-                    })
-                }
-                
-                observer.dataSourceDidChange(objectChanges: filterdObjectChanges, sectionChanges: filterdSectionChanges)
+    func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
+        for changeObserver in changeObservers {
+            let objectChanges = prepareObjectChanges(objectChanges, for: changeObserver)
+            let sectionChanges = prepareSectionChanges(sectionChanges, for: changeObserver)
+            changeObserver.dataSourceChangeObserver.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
+        }
+    }
+    
+    private func prepareObjectChanges(_ changes: [ObjectChange], for changeObserver: ChangeObserver) -> [ObjectChange] {
+        var changes = changes
+        if !changeObserver.ignoreObjectChangeTypes.isEmpty {
+            if changeObserver.indexPathOffset == IndexPath(item: 0, section: 0) {
+                changes = changes.filter { !changeObserver.ignoreObjectChangeTypes.contains($0.type) }
             } else {
-                observer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: sectionChanges)
+                changes = changes.compactMap({
+                    if changeObserver.ignoreObjectChangeTypes.contains($0.type) {
+                        return nil
+                    } else {
+                        return $0.adding(offset: changeObserver.indexPathOffset)
+                    }
+                })
             }
         }
+        return changes
+    }
+    
+    private func prepareSectionChanges(_ changes: [SectionChange], for changeObserver: ChangeObserver) -> [SectionChange] {
+        var changes = changes
+        if !changeObserver.ignoreSectionChangeTypes.isEmpty {
+            if changeObserver.indexPathOffset == IndexPath(item: 0, section: 0) {
+                changes = changes.filter { !changeObserver.ignoreSectionChangeTypes.contains($0.type) }
+            } else {
+                changes = changes.compactMap({
+                    if changeObserver.ignoreSectionChangeTypes.contains($0.type) {
+                        return nil
+                    } else {
+                        return $0.adding(offset: changeObserver.indexPathOffset.section)
+                    }
+                })
+            }
+        }
+        return changes
     }
     
     public func reloadAllItems() {

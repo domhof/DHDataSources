@@ -32,7 +32,7 @@ public class PHFetchResultDataSource<ModelType: PHObject>: DataSource {
         }
     }
     
-    public func subscribe(observer: DataSourceChangeObserver, ignoreChangeTypes: [ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
+    public func subscribe(observer: DataSourceChangeObserver, ignoreObjectChangeTypes: [ObjectChange.ChangeType] = [], ignoreSectionChangeTypes: [SectionChange.ChangeType] = [], indexPathOffset: IndexPath = IndexPath(item: 0, section: 0)) {
         #warning("ignoreChangeTypes gets ignored for the time being...")
         
         photoLibraryChangeObserver.subscribe(observer: observer, indexPathOffset: indexPathOffset)
@@ -100,14 +100,13 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
         #warning("Use lock to prevent concurrent access.")
         
         for (observer, indexPathOffset) in changeObservers {
-            var objectChanges = [ObjectChangeTuple]()
+            var objectChanges = [ObjectChange]()
             
             // Delete
             if let removed = collectionChanges.removedIndexes {
                 for index in removed {
                     let indexPath = IndexPath(item: index + indexPathOffset.item, section: indexPathOffset.section)
-                    let change = ObjectChangeTuple(changeType: .delete, indexPaths: [indexPath])
-                    objectChanges.append(change)
+                    objectChanges.append(ObjectChange.delete(at: indexPath))
                 }
             }
             
@@ -115,8 +114,7 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
             if let inserted = collectionChanges.insertedIndexes {
                 for index in inserted {
                     let indexPath = IndexPath(item: index + indexPathOffset.item, section: indexPathOffset.section)
-                    let change = ObjectChangeTuple(changeType: .insert, indexPaths: [indexPath])
-                    objectChanges.append(change)
+                    objectChanges.append(ObjectChange.insert(at: indexPath))
                 }
             }
             
@@ -124,8 +122,7 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
             if let updated = collectionChanges.changedIndexes {
                 for index in updated {
                     let indexPath = IndexPath(item: index + indexPathOffset.item, section: indexPathOffset.section)
-                    let change = ObjectChangeTuple(changeType: .update, indexPaths: [indexPath])
-                    objectChanges.append(change)
+                    objectChanges.append(ObjectChange.update(at: indexPath))
                 }
             }
             
@@ -141,9 +138,7 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
                     }
                     
                     moves[fromIndexPath] = toIndexPath
-                    
-                    let change = ObjectChangeTuple(changeType: .move, indexPaths: [fromIndexPath, toIndexPath])
-                    objectChanges.append(change)
+                    objectChanges.append(ObjectChange.move(at: fromIndexPath, to: toIndexPath))
                 }
             }
             
