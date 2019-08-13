@@ -54,7 +54,7 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     
     public weak var delegate: (PhotoLibraryChangeObserverDelegate)?
     
-    private unowned let dataSource: PHFetchResultDataSource<ModelType>
+    private weak var dataSource: PHFetchResultDataSource<ModelType>?
     
     private var changeObservers = [(dataSourceChangeObserver: DataSourceChangeObserver, indexPathOffset: IndexPath)]()
     
@@ -153,12 +153,16 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     public func photoLibraryDidChange(_ changeInfo: PHChange) {
         _ = phPhotoLibChageMutex.wait(timeout: DispatchTime.distantFuture) // TODO: Remove?
         
+        guard let dataSource = self.dataSource else {
+            return
+        }
+        
         // Check for changes to the list of assets (insertions, deletions, moves, or updates).
         //  as! PHFetchResult<PHObject> added as part of Swift 3 migration.
-        if let collectionChanges = changeInfo.changeDetails(for: self.dataSource.fetchResult) {
+        if let collectionChanges = changeInfo.changeDetails(for: dataSource.fetchResult) {
             
             // Get the new fetch result for future change tracking.
-            self.dataSource.fetchResult = collectionChanges.fetchResultAfterChanges
+            dataSource.fetchResult = collectionChanges.fetchResultAfterChanges
             
             if collectionChanges.hasIncrementalChanges {
                 var shouldReload = false
