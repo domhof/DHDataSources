@@ -154,6 +154,7 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
         _ = phPhotoLibChageMutex.wait(timeout: DispatchTime.distantFuture) // TODO: Remove?
         
         guard let dataSource = self.dataSource else {
+            self.phPhotoLibChageMutex.signal()
             return
         }
         
