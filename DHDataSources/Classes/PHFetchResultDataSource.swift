@@ -58,8 +58,6 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     
     private var changeObservers = [(dataSourceChangeObserver: DataSourceChangeObserver, indexPathOffset: IndexPath)]()
     
-    private let phPhotoLibChageMutex = DispatchSemaphore(value: 1)
-    
     fileprivate init(dataSource: PHFetchResultDataSource<ModelType>) {
         self.dataSource = dataSource
     }
@@ -97,8 +95,6 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     }
     
     private func dataSourceDidChange(collectionChanges: PHFetchResultChangeDetails<ModelType>) {
-        #warning("Use lock to prevent concurrent access.")
-        
         for (observer, indexPathOffset) in changeObservers {
             var objectChanges = [ObjectChange]()
             
@@ -142,70 +138,56 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
                 }
             }
             
-            // Photos may call this method on a background queue;
-            // switch to the main queue to update the UI.
-            DispatchQueue.main.async {
-                observer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: [])
-            }
+            observer.dataSourceDidChange(objectChanges: objectChanges, sectionChanges: [])
         }
     }
     
     public func photoLibraryDidChange(_ changeInfo: PHChange) {
-        _ = phPhotoLibChageMutex.wait(timeout: DispatchTime.distantFuture) // TODO: Remove?
+        // Photos may call this method on a background queue;
+        // switch to the main queue to update the UI.
+        DispatchQueue.main.async {
+            guard let dataSource = self.dataSource else { return }
         
-        guard let dataSource = self.dataSource else {
-            self.phPhotoLibChageMutex.signal()
-            return
-        }
-        
-        // Check for changes to the list of assets (insertions, deletions, moves, or updates).
-        //  as! PHFetchResult<PHObject> added as part of Swift 3 migration.
-        if let collectionChanges = changeInfo.changeDetails(for: dataSource.fetchResult) {
-            
-            // Get the new fetch result for future change tracking.
-            dataSource.fetchResult = collectionChanges.fetchResultAfterChanges
-            
-            if collectionChanges.hasIncrementalChanges {
-                var shouldReload = false
-                if
-                    let removedIndexes = collectionChanges.removedIndexes,
-                    let changedIndexes = collectionChanges.changedIndexes
-                {
-                    if removedIndexes.isDisjoint(with: changedIndexes) {
-                        shouldReload = true
+            // Check for changes to the list of assets (insertions, deletions, moves, or updates).
+            //  as! PHFetchResult<PHObject> added as part of Swift 3 migration.
+            if let collectionChanges = changeInfo.changeDetails(for: dataSource.fetchResult) {
+                
+                // Get the new fetch result for future change tracking.
+                dataSource.fetchResult = collectionChanges.fetchResultAfterChanges
+                
+                if collectionChanges.hasIncrementalChanges {
+                    var shouldReload = false
+                    if
+                        let removedIndexes = collectionChanges.removedIndexes,
+                        let changedIndexes = collectionChanges.changedIndexes
+                    {
+                        if removedIndexes.isDisjoint(with: changedIndexes) {
+                            shouldReload = true
+                        }
+                        
+                        if let last = removedIndexes.last, last >= collectionChanges.fetchResultBeforeChanges.count {
+                            shouldReload = true
+                            #warning("Handle error")
+                            NSLog("removedPaths.last!.item >= collectionChanges.fetchResultBeforeChanges.count")
+                        }
                     }
                     
-                    if let last = removedIndexes.last, last >= collectionChanges.fetchResultBeforeChanges.count {
-                        shouldReload = true
-                        #warning("Handle error")
-                        NSLog("removedPaths.last!.item >= collectionChanges.fetchResultBeforeChanges.count")
+                    if shouldReload {
+                        self.reloadAllItems()
+                        self.delegate?.photoLibraryChangeObserverDataDidChange()
+                    } else {
+                        // Tell the collection view to animate insertions/deletions/moves
+                        // and to refresh any cells that have changed content.
+                        self.dataSourceDidChange(collectionChanges: collectionChanges)
+                        self.delegate?.photoLibraryChangeObserverDataDidChange()
                     }
-                }
-                
-                if shouldReload {
+                } else {
+                    // Detailed change information is not available;
+                    // repopulate the UI from the current fetch result.
                     self.reloadAllItems()
                     self.delegate?.photoLibraryChangeObserverDataDidChange()
-                    
-                    self.phPhotoLibChageMutex.signal()
-                } else {
-                    // Tell the collection view to animate insertions/deletions/moves
-                    // and to refresh any cells that have changed content.
-                    
-                    self.dataSourceDidChange(collectionChanges: collectionChanges)
-                    self.delegate?.photoLibraryChangeObserverDataDidChange()
-                    
-                    self.phPhotoLibChageMutex.signal()
                 }
-            } else {
-                // Detailed change information is not available;
-                // repopulate the UI from the current fetch result.
-                self.reloadAllItems()
-                self.delegate?.photoLibraryChangeObserverDataDidChange()
-                
-                self.phPhotoLibChageMutex.signal()
             }
-        } else {
-            self.phPhotoLibChageMutex.signal()
         }
     }
 }
