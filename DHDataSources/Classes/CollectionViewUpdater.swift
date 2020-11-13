@@ -2,25 +2,27 @@ import Foundation
 
 public class CollectionViewUpdater: DataSourceChangeObserver {
     
-    private let collectionView: UICollectionView
+    private weak var collectionView: UICollectionView?
     
     public init(collectionView: UICollectionView) {
         self.collectionView = collectionView
     }
     
     public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
+        guard let collectionView = collectionView else { return }
+        
         collectionView.performBatchUpdates({
             // Apply object changes.
             for change in objectChanges {
                 switch(change) {
                 case let .insert(at: indexPath):
-                    self.collectionView.insertItems(at: [indexPath])
+                    collectionView.insertItems(at: [indexPath])
                 case let .delete(at: indexPath):
-                    self.collectionView.deleteItems(at: [indexPath])
+                    collectionView.deleteItems(at: [indexPath])
                 case let .update(at: indexPath):
-                    self.collectionView.reloadItems(at: [indexPath])
+                    collectionView.reloadItems(at: [indexPath])
                 case let .move(at: at, to: to):
-                    self.collectionView.moveItem(at: at, to: to)
+                    collectionView.moveItem(at: at, to: to)
                 }
             }
             
@@ -28,9 +30,9 @@ public class CollectionViewUpdater: DataSourceChangeObserver {
             for change in sectionChanges {
                 switch(change) {
                 case let .insert(at: sectionIndex):
-                    self.collectionView.insertSections(IndexSet(integer: sectionIndex))
+                    collectionView.insertSections(IndexSet(integer: sectionIndex))
                 case let .delete(at: sectionIndex):
-                    self.collectionView.deleteSections(IndexSet(integer: sectionIndex))
+                    collectionView.deleteSections(IndexSet(integer: sectionIndex))
                 }
             }
         }) { _ in
@@ -41,6 +43,6 @@ public class CollectionViewUpdater: DataSourceChangeObserver {
     }
     
     public func reloadAllItems() {
-        collectionView.reloadData()
+        collectionView?.reloadData()
     }
 }

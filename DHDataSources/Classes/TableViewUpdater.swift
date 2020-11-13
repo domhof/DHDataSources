@@ -2,13 +2,15 @@ import Foundation
 
 public class TableViewUpdater: DataSourceChangeObserver {
     
-    private let tableView: UITableView
+    private weak var tableView: UITableView?
     
     public init(tableView: UITableView) {
         self.tableView = tableView
     }
     
     public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
+        guard let tableView = tableView else { return }
+        
         tableView.beginUpdates()
         
         // Apply object changes.
@@ -44,6 +46,6 @@ public class TableViewUpdater: DataSourceChangeObserver {
     }
     
     public func reloadAllItems() {
-        tableView.reloadData()
+        tableView?.reloadData()
     }
 }
