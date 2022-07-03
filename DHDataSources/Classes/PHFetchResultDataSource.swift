@@ -45,7 +45,7 @@ public class PHFetchResultDataSource<ModelType: PHObject>: DataSource {
 
 #warning("Remove and let client register a DataSourceChangeObserver instead.")
 
-public protocol PhotoLibraryChangeObserverDelegate: class {
+public protocol PhotoLibraryChangeObserverDelegate: AnyObject {
     func photoLibraryChangeObserverDataDidChange()
 }
 

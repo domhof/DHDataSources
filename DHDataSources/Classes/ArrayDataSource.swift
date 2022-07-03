@@ -97,3 +97,41 @@ public class ArrayDataSourceSorter<ModelType: Equatable> {
         dataSource.applyChanges(sections: sections, objectChanges: objectChanges, sectionChanges: [])
     }
 }
+
+public class ArrayDataSourceReverser<ModelType: Equatable> {
+    
+    let dataSource: ArrayDataSource<ModelType>
+    
+    public init(dataSource: ArrayDataSource<ModelType>) {
+        self.dataSource = dataSource
+    }
+    
+    public func reverse() {
+        let numberOfSections = dataSource.numberOfSections()
+        guard numberOfSections > 0 else { return }
+        
+        var sections = [[ModelType]]()
+        var objectChanges = [ObjectChange]()
+        
+        for sectionIndex in 0..<numberOfSections {
+            let originalArray = dataSource.section(at: sectionIndex)
+            
+            // Calculate new array.
+            let sortedArray = Array(originalArray.reversed())
+            sections.append(sortedArray)
+            
+            // Calculate ObjectChangeTuples.
+            for originalIndex in originalArray.indices {
+                guard originalArray.count % 2 == 0 || originalIndex != (originalArray.count + 1) / 2 else {
+                    continue
+                }
+                
+                let from = IndexPath(item: originalIndex, section: sectionIndex)
+                let to = IndexPath(item: (originalArray.count - 1) - originalIndex, section: sectionIndex)
+                objectChanges.append(.move(at: from, to: to))
+            }
+        }
+        
+        dataSource.applyChanges(sections: sections, objectChanges: objectChanges, sectionChanges: [])
+    }
+}
