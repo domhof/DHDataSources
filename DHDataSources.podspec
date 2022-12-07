@@ -1,10 +1,9 @@
 Pod::Spec.new do |s|
   s.name             = 'DHDataSources'
   s.version          = '0.1.0'
-  s.summary          = 'A short description of DHDataSources.'
+  s.summary          = 'IndexPath based datasources and adapters providing data for UITableView and UICollectionView.'
 
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
                        DESC
 
   s.homepage         = 'https://github.com/domhof/DHDataSources'
@@ -16,6 +15,4 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '8.0'
 
   s.source_files = 'DHDataSources/Classes/**/*.swift'
-  
-  s.frameworks = 'UIKit', 'CoreData'
 end
