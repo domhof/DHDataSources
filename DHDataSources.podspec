@@ -13,7 +13,7 @@ IndexPath based datasources and adapters providing data for UITableView and UICo
   s.source           = { :git => 'https://github.com/domhof/DHDataSources.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/dominikhofer'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '11.0'
 
   s.source_files = 'DHDataSources/Classes/**/*.swift'
 end
