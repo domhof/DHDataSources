@@ -1,0 +1,24 @@
+{
+  "name": "DHDataSources",
+  "version": "0.1.0",
+  "summary": "A short description of DHDataSources.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/domhof/DHDataSources",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "Dominik Hofer": "me@dominikhofer.com"
+  },
+  "source": {
+    "git": "https://github.com/domhof/DHDataSources.git",
+    "tag": "0.1.0"
+  },
+  "social_media_url": "https://twitter.com/dominikhofer",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "DHDataSources/Classes/**/*",
+  "frameworks": "UIKit"
+}

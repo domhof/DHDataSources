@@ -1,0 +1,6 @@
+framework module DHDataSources {
+  umbrella header "DHDataSources-umbrella.h"
+
+  export *
+  module * { export * }
+}

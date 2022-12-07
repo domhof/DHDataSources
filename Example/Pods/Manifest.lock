@@ -1,0 +1,16 @@
+PODS:
+  - DHDataSources (0.1.0)
+
+DEPENDENCIES:
+  - DHDataSources (from `../`)
+
+EXTERNAL SOURCES:
+  DHDataSources:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  DHDataSources: 9b22eb1eda51f137b5374a0fdaeedc13928a7bfb
+
+PODFILE CHECKSUM: 267ecf2561e9fd19e71b93771e961f995f7f1d6b
+
+COCOAPODS: 1.5.3
