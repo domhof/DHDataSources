@@ -4,6 +4,7 @@ Pod::Spec.new do |s|
   s.summary          = 'IndexPath based datasources and adapters providing data for UITableView and UICollectionView.'
 
   s.description      = <<-DESC
+IndexPath based datasources and adapters providing data for UITableView and UICollectionView.
                        DESC
 
   s.homepage         = 'https://github.com/domhof/DHDataSources'
