@@ -9,7 +9,7 @@ public class CollectionViewUpdater: DataSourceChangeObserver {
     }
     
     public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
-        guard let collectionView = collectionView else { return }
+        guard let collectionView = collectionView, collectionView.window != nil else { return }
         
         collectionView.performBatchUpdates({
             // Apply object changes.
