@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DHDataSources'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'IndexPath based datasources and adapters providing data for UITableView and UICollectionView.'
 
   s.description      = <<-DESC
