@@ -135,3 +135,40 @@ public class ArrayDataSourceReverser<ModelType: Equatable> {
         dataSource.applyChanges(sections: sections, objectChanges: objectChanges, sectionChanges: [])
     }
 }
+
+public class ArrayDataSourceShuffler<ModelType: Equatable> {
+    
+    let dataSource: ArrayDataSource<ModelType>
+    
+    public init(dataSource: ArrayDataSource<ModelType>) {
+        self.dataSource = dataSource
+    }
+    
+    public func shuffle() {
+        let numberOfSections = dataSource.numberOfSections()
+        guard numberOfSections > 0 else { return }
+        
+        var sections = [[ModelType]]()
+        var objectChanges = [ObjectChange]()
+        
+        for sectionIndex in 0..<numberOfSections {
+            let originalArray = dataSource.section(at: sectionIndex)
+            
+            // Calculate new array.
+            let sortedArray = originalArray.shuffled()
+            sections.append(sortedArray)
+            
+            // Calculate ObjectChangeTuples.
+            for (originalIndex, originalItem) in originalArray.enumerated() {
+                let sortedIndex = sortedArray.index(of: originalItem)!
+                if originalIndex != sortedIndex {
+                    let from = IndexPath(item: originalIndex, section: sectionIndex)
+                    let to = IndexPath(item: sortedIndex, section: sectionIndex)
+                    objectChanges.append(.move(at: from, to: to))
+                }
+            }
+        }
+        
+        dataSource.applyChanges(sections: sections, objectChanges: objectChanges, sectionChanges: [])
+    }
+}
