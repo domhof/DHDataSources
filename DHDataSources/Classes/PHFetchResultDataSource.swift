@@ -87,11 +87,9 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
     }
     
     private func reloadAllItems() {
-        // Photos may call this method on a background queue;
-        // switch to the main queue to update the UI.
-        DispatchQueue.main.async {
-            self.changeObservers.forEach { $0.dataSourceChangeObserver.reloadAllItems() }
-        }
+        // photoLibraryDidChange already dispatches to the main queue.
+        // Reload immediately to keep the UI in sync with the new fetch result.
+        self.changeObservers.forEach { $0.dataSourceChangeObserver.reloadAllItems() }
     }
     
     private func dataSourceDidChange(collectionChanges: PHFetchResultChangeDetails<ModelType>) {

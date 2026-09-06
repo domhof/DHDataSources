@@ -2,7 +2,7 @@ import Foundation
 
 open class ArrayDataSource<ModelType>: NSObject, DataSource {
     
-    public private (set) var sections: [[ModelType]]
+    public private(set) var sections: [[ModelType]]
     private let observerContainer = ObserverContainer()
     
     public init(items: [ModelType]) {
