@@ -8,6 +8,11 @@ public class TableViewUpdater: DataSourceChangeObserver {
         self.tableView = tableView
     }
     
+    public func dataSourceWillChange() {
+        // Finish pending layout while the data source still contains the old items.
+        tableView?.layoutIfNeeded()
+    }
+
     public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
         guard let tableView = tableView else { return }
         

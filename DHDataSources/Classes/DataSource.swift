@@ -13,8 +13,13 @@ public protocol DataSource: AnyObject {
 }
 
 public protocol DataSourceChangeObserver: AnyObject {
+    func dataSourceWillChange()
     func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange])
     func reloadAllItems()
+}
+
+public extension DataSourceChangeObserver {
+    func dataSourceWillChange() {}
 }
 
 public enum ObjectChange {

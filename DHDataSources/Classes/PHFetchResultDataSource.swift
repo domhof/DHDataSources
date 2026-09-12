@@ -112,14 +112,6 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
                 }
             }
             
-            // Update
-            if let updated = collectionChanges.changedIndexes {
-                for index in updated {
-                    let indexPath = IndexPath(item: index + indexPathOffset.item, section: indexPathOffset.section)
-                    objectChanges.append(ObjectChange.update(at: indexPath))
-                }
-            }
-            
             // Move
             var moves = [IndexPath: IndexPath]()
             if (collectionChanges.hasMoves) {
@@ -150,41 +142,23 @@ fileprivate class PhotoLibraryChangeObserver<ModelType: PHObject>: NSObject, PHP
             //  as! PHFetchResult<PHObject> added as part of Swift 3 migration.
             if let collectionChanges = changeInfo.changeDetails(for: dataSource.fetchResult) {
                 
-                // Get the new fetch result for future change tracking.
+                // Prepare every observer before replacing the shared fetch result.
+                self.changeObservers.forEach { $0.dataSourceChangeObserver.dataSourceWillChange() }
                 dataSource.fetchResult = collectionChanges.fetchResultAfterChanges
-                
-                if collectionChanges.hasIncrementalChanges {
-                    var shouldReload = false
-                    if
-                        let removedIndexes = collectionChanges.removedIndexes,
-                        let changedIndexes = collectionChanges.changedIndexes
-                    {
-                        if removedIndexes.isDisjoint(with: changedIndexes) {
-                            shouldReload = true
-                        }
-                        
-                        if let last = removedIndexes.last, last >= collectionChanges.fetchResultBeforeChanges.count {
-                            shouldReload = true
-                            #warning("Handle error")
-                            NSLog("removedPaths.last!.item >= collectionChanges.fetchResultBeforeChanges.count")
-                        }
-                    }
-                    
-                    if shouldReload {
-                        self.reloadAllItems()
-                        self.delegate?.photoLibraryChangeObserverDataDidChange()
-                    } else {
-                        // Tell the collection view to animate insertions/deletions/moves
-                        // and to refresh any cells that have changed content.
-                        self.dataSourceDidChange(collectionChanges: collectionChanges)
-                        self.delegate?.photoLibraryChangeObserverDataDidChange()
-                    }
-                } else {
-                    // Detailed change information is not available;
-                    // repopulate the UI from the current fetch result.
+
+                // PhotoKit changedIndexes refer to the after state and cannot be
+                // passed to reloadItems inside the structural batch update.
+                let hasChangedItems = !(collectionChanges.changedIndexes?.isEmpty ?? true)
+                let hasInvalidRemovedIndex = collectionChanges.removedIndexes.map {
+                    ($0.last ?? -1) >= collectionChanges.fetchResultBeforeChanges.count
+                } ?? false
+
+                if !collectionChanges.hasIncrementalChanges || hasChangedItems || hasInvalidRemovedIndex {
                     self.reloadAllItems()
-                    self.delegate?.photoLibraryChangeObserverDataDidChange()
+                } else {
+                    self.dataSourceDidChange(collectionChanges: collectionChanges)
                 }
+                self.delegate?.photoLibraryChangeObserverDataDidChange()
             }
         }
     }

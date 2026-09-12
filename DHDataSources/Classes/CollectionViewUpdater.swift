@@ -8,6 +8,11 @@ public class CollectionViewUpdater: DataSourceChangeObserver {
         self.collectionView = collectionView
     }
     
+    public func dataSourceWillChange() {
+        // Finish pending layout while the data source still contains the old items.
+        collectionView?.layoutIfNeeded()
+    }
+
     public func dataSourceDidChange(objectChanges: [ObjectChange], sectionChanges: [SectionChange]) {
         guard let collectionView = collectionView else { return }
         
